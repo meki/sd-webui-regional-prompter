@@ -764,7 +764,7 @@ def unloadlorafowards(self):
         if sd_hijack is not None:
             emb_db = sd_hijack.model_hijack.embedding_db
             for net in lora.loaded_loras:
-                if hasattr(net,"bundle_embeddings"):
+                if hasattr(net, "bundle_embeddings"):
                     for emb_name, embedding in net.bundle_embeddings.items():
                         if embedding.loaded:
                             emb_db.register_embedding_by_name(None, shared.sd_model, emb_name)
