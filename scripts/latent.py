@@ -1,7 +1,7 @@
 import copy
 from pprint import pprint
 import torch
-from modules import devices, shared, extra_networks, sd_hijack
+from modules import devices, shared, extra_networks
 from modules.script_callbacks import CFGDenoisedParams, CFGDenoiserParams
 from torchvision.transforms import InterpolationMode, Resize  # Mask.
 import scripts.attention as att
@@ -756,12 +756,18 @@ def unloadlorafowards(self):
         from backend.args import dynamic_args
         dynamic_args["online_lora"] = self.orig_online_lora
     else:
-        emb_db = sd_hijack.model_hijack.embedding_db
-        for net in lora.loaded_loras:
-            if hasattr(net,"bundle_embeddings"):
-                for emb_name, embedding in net.bundle_embeddings.items():
-                    if embedding.loaded:
-                        emb_db.register_embedding_by_name(None, shared.sd_model, emb_name)
+        try:
+            from modules import sd_hijack
+        except ImportError:
+            sd_hijack = None
+
+        if sd_hijack is not None:
+            emb_db = sd_hijack.model_hijack.embedding_db
+            for net in lora.loaded_loras:
+                if hasattr(net, "bundle_embeddings"):
+                    for emb_name, embedding in net.bundle_embeddings.items():
+                        if embedding.loaded:
+                            emb_db.register_embedding_by_name(None, shared.sd_model, emb_name)
 
     lora.loaded_loras.clear()
     if orig_Linear_forward != None :
